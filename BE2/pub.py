@@ -3,27 +3,48 @@ import time
 import paho.mqtt.client as mqtt
 import requests
 import json
+from pymongo import MongoClient
 
 cli = mqtt.Client()
 cli.connect("test.mosquitto.org", 1883, 60)
 
+url = "http://worldtimeapi.org/api/timezone/America/Bogota"
 
-def feed():
-    cli.publish("feed", "4 kg")
-    print("Hay comida!")
-    
+mongo_uri = 'mongodb://localhost:27017'
+mClient = MongoClient(mongo_uri)
 
-# Programar la tarea diaria para ejecutarse todos los días a las 8 a.m.
-schedule.every().day.at("22:20").do(feed)
-schedule.every().day.at("22:21").do(feed)
-schedule.every().day.at("22:22").do(feed)
+db = mClient['BE2']
+collection = db['alimentador']
 
-# Bucle infinito para mantener el programa en ejecución
+def get_hours(data):
+    return str(data["datetime"][11:16])
+
+def consume_api(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+
+def get_time_now(data):
+    return str(get_hours(data))
+
+#El parametro schedule debe tener un formato HH:MM, y debe ser un formato de 24 horas        
+def is_time_to_feed(schedule):
+    return get_time_now(consume_api(url)) == schedule
+
+
+
 while True:
-    # Comprobar si hay tareas programadas para ejecutar
-    schedule.run_pending()
-    # Esperar 1 segundo antes de volver a comprobar si hay tareas programadas
-    time.sleep(1)
+    data = consume_api(url)
+    if(is_time_to_feed("03:28")):
+        print("Alimenteme pues, guevón...")
+    else:
+        print("Toy llenito, marica")
+    time.sleep(60)
+
+
+
+
+
     
     
     
