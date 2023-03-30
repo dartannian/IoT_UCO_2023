@@ -6,6 +6,7 @@ mClient = MongoClient(mongo_uri)
 
 db = mClient['BE2']
 collection = db['alimentador']
+
 app = Flask(__name__)
 
 @app.route('/alimentadores', methods=['POST'])
