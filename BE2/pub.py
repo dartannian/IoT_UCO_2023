@@ -10,7 +10,7 @@ cli.connect("test.mosquitto.org", 1883, 60)
 
 url = "http://worldtimeapi.org/api/timezone/America/Bogota"
 
-mongo_uri = 'mongodb://localhost:27017'
+mongo_uri = 'mongodb://database:12345@localhost/?authSource=BE2'
 mClient = MongoClient(mongo_uri)
 
 db = mClient['BE2']
@@ -41,14 +41,14 @@ def validate_feeders(col):
     for a in col:
         if(is_time_to_feed(get_schedule_from_feeder(a["serial"]))):
             cli.publish("feed", str(a["cantidad"]))#a["cantidad"]
-            print("E alimentador con serial", a["serial"], " acaba de llenarse con", a["cantidad"])
+            print("El alimentador con serial", a["serial"], " acaba de llenarse con", a["cantidad"])
         else:
             print("Todavía hay alimento")
 
 while True:
     data = consume_api(url)
     validate_feeders(collection.find())
-    time.sleep(60)
+    time.sleep(20)
 
 
 
