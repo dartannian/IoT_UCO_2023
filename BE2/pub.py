@@ -5,12 +5,16 @@ import requests
 import json
 from pymongo import MongoClient
 
+username = "argfonaa"
+password = "1Ec9pVVoAPpK"
+
 cli = mqtt.Client()
-cli.connect("test.mosquitto.org", 1883, 60)
+cli.username_pw_set(username, password)
+cli.connect("3.83.156.245", 18582)
 
 url = "http://worldtimeapi.org/api/timezone/America/Bogota"
 
-mongo_uri = 'mongodb://database:12345@localhost/?authSource=BE2'
+mongo_uri = 'mongodb://database2:12345@localhost/?authSource=BE2'
 mClient = MongoClient(mongo_uri)
 
 db = mClient['BE2']

@@ -3,15 +3,21 @@ import requests
 import json
 from pymongo import MongoClient
 
-url_chat_bot = "http://10.209.23.135:3030/send_alarm"
-url_be_1 = "http://10.209.23.119:8080/api/feeder/jowjer2"
-mongo_uri = 'mongodb://database:12345@localhost/?authSource=BE2'
+url_chat_bot = "http://172.16.3.112:3030/send_alarm"
+url_be_1 = "http://172.16.3.80:8090/api/user/public/get-by-feeder/"
+mongo_uri = 'mongodb://database2:12345@localhost/?authSource=BE2'
 client = mqtt.Client()
+username = "argfonaa"
+password = "1Ec9pVVoAPpK"
+
+# Crear el objeto de cliente MQTT y especificar las credenciales
+#client = mqtt.Client(client_id="tu_id_de_cliente")
+client.username_pw_set(username=username, password=password)
+
+client.connect("3.83.156.245", 18582)
 monClient = MongoClient(mongo_uri)
 db = monClient["BE2"]
 collection = db["comunicaciones"]
-
-data = {"phone":"3116033166","feeder":"fd01"}
 
 def on_connect(client, userdata, flags, rc):
     print("Se conectó con mqtt: "+str(rc))
@@ -37,21 +43,32 @@ def on_message(client, userdata, msg):
     #Esto con el fin de que el json tenga el formato correcto
     bd_data = (str_to_json(bd_data))
     print(bd_data)
+    print("serialBackend2 ","va a ejecutar collection")
     collection.insert_one(json.loads(bd_data))
+    print("serialBackend2 ","Ejecuto collection")
     if msg.topic == "alarm":
-        response = requests.post(url_chat_bot, json=data)
+        print("serialBackend2 ","Entro a alarma")
         #client.publish("feed","5 kg")
-        print(response)
-        response2 = requests.get(url_be_1)
+        response2 = requests.get(url_be_1 + payload)
+        print(url_be_1 + payload)
+        print(response2.json)
         if response2.status_code == 200:
-            print(response2.json)
-    #elif msg.topic == "weight":
-    #    print("Actualmente hay esta cantidad en el alimentador: " + str(msg.payload))
+            data = str(response2.content).split("'")
+            if(data[1] != ""):
+                print(data[1])
+                response = requests.post(url_chat_bot, json=json.loads(data[1]) )
+                print(json.loads(data[1]))
+                print(response)
+        elif response2.status_code == 403:
+            print("plop")
+    elif msg.topic == "weight":
+        print("serialBackend2 ","Entro a weight")
+        print("Actualmente hay esta cantidad en el alimentador: " + str(msg.payload))
 
 
 
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("test.mosquitto.org", 1883, 60)
+
 client.loop_forever()
